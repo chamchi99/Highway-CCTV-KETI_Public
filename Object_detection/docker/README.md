@@ -5,7 +5,7 @@
 1. 소스코드 다운로드
 
 ```bash
-git clone https://github.com/swhan0329/detectron2_keti/
+git clone https://github.com/chamchi99/Highway-CCTV-KETI.git
 ```
 
 2. 다운로드
