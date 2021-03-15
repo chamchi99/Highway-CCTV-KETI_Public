@@ -18,4 +18,4 @@ https://github.com/facebookresearch/detectron2
 
 ## 사용방법
 
-데이터셋, 모델웨이트, 도커 등 세팅 방법은 [이 링크](https://github.com/swhan0329/detectron2_keti/blob/master/docker/README.md) 참조
+데이터셋, 모델웨이트, 도커 등 세팅 방법은 [이 링크](https://github.com/chamchi99/Highway-CCTV-KETI/blob/main/Object_detection/docker/README.md) 참조
