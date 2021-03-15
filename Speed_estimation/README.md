@@ -19,7 +19,7 @@ VDL이란 차량의 속도 추정을 위해 사용하는 가상의 선으로서,
 
 ### 속도추정 알고리즘
 
-본 프로젝트를 진행하면서 차량 속도 추정 방법에 대해서 여러가지 시도를 했다. [속도 추정 알고리즘 성능분석 보고서](https://github.com/swhan0329/VDL_speed_estimation/blob/master/%EC%86%8D%EB%8F%84%20%EC%B6%94%EC%A0%95%20%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98-v1.0.pdf)에서 확인할 수 있다.
+본 프로젝트를 진행하면서 차량 속도 추정 방법에 대해서 여러가지 시도를 했다. [속도 추정 알고리즘 성능분석 보고서](https://github.com/chamchi99/Highway-CCTV-KETI/blob/main/Speed_estimation/%EC%86%8D%EB%8F%84%20%EC%B6%94%EC%A0%95%20%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98-v1.0.pdf)에서 확인할 수 있다.
 
 ### 전체 알고리즘 흐름도
 
