@@ -23,7 +23,7 @@ But this report is written by Korean.
 The code provided in this repository cannot be executed with only the .py file itself. In order to estimate the speed, object detection and tracking must be performed in advance. 
 As shown in the figure below, when an input image comes in, it receives one frame at a time and preprocessing, object detection, and object tracking.
 After going through the process, the speed of each object is finally estimated using the Bboxes and track classes, which are the result of object tracking. 
-For more information, refer to [Manual of the Speed Estimation Algorithm using VDL method](https://github.com/swhan0329/VDL_speed_estimation/blob/master/VDL%ED%99%9C%EC%9A%A9%20%EC%86%8D%EB%8F%84%EC%B6%94%EC%A0%95%20%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98%20%EB%A7%A4%EB%89%B4%EC%96%BC-v1.1.pdf).
+For more information, refer to [Manual of the Speed Estimation Algorithm using VDL method](https://github.com/chamchi99/Highway-CCTV-KETI/blob/main/Speed_estimation/VDL%ED%99%9C%EC%9A%A9%20%EC%86%8D%EB%8F%84%EC%B6%94%EC%A0%95%20%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98%20%EB%A7%A4%EB%89%B4%EC%96%BC-v1.1.pdf).
 But this report is also written by Korean.
 
 ![속도 추정 알고리즘 전체 모델 사진](images/whole_flow_chart.png)
