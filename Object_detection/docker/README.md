@@ -1,4 +1,4 @@
-# 객체 검출, 분할 모델
+# 객체 검출 모델
 
 ## 모델 및 데이터셋 다운로드
 
@@ -16,15 +16,15 @@ git clone https://github.com/swhan0329/detectron2_keti/
 
 데이터셋을 소스 코드 clone 한 폴더 내부의 detectron2/detectron2/dataset 로 옮김
 
-* 객체 검출/분할 코드 트리
+* 객체 검출 코드 트리
 
 ```
 .
 ├── datasets
-│   ├── test_PS
-│   ├── test_PS10.json
-│   ├── train_PS
-│   └── train_PS50.json
+│   ├── test_BB
+│   ├── test_BB10.json
+│   ├── train_BB
+│   └── train_BB50.json
 ├── detectron2_keti
 │   ├── build
 │   ├── configs
@@ -43,7 +43,7 @@ git clone https://github.com/swhan0329/detectron2_keti/
 │   ├── tests
 │   └── tools
 └── weights
-    └── model_final_PS.pth 
+    └── model_final_BB.pth 
 ```
 
 ## 도커 이미지 사용 매뉴얼
