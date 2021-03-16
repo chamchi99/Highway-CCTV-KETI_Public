@@ -12,7 +12,7 @@ git clone https://github.com/chamchi99/Highway-CCTV-KETI.git
 
 * 모델 웨이트
 
-    객체 검출: 
+    객체 검출: https://drive.google.com/file/d/17qyrapgcTfdJLsvSynbrVGIYdWg0BBgd/view?usp=sharing
 
 * 데이터셋
 
