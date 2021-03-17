@@ -15,10 +15,15 @@
 * car : 일반세단, 해치백 승용차, SUV, RV, 픽업트럭, 12인승급 승합차
 * truck : 일반트럭, 대형 트레일러
 
+<br>
+
+### 어노테이션 예시
 ![image](https://user-images.githubusercontent.com/33386742/111414333-250ac500-8723-11eb-8bd0-7786ffb6121d.png)
 
 
-![keti_img](https://user-images.githubusercontent.com/59859754/111405969-c2123180-8714-11eb-880f-a6c2d2d9db32.png)
+<br>
+<br>
+
 ### 차량 검출 예시 이미지
 ![detection1](https://user-images.githubusercontent.com/59859754/111408010-eae7f600-8717-11eb-9d4e-c57e3e2c961a.png)
 ### 차량 분할 예시 
