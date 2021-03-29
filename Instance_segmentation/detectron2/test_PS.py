@@ -41,8 +41,8 @@ class CocoTrainer(DefaultTrainer):
     return COCOEvaluator(dataset_name, cfg, False, output_folder)
 
 register_coco_instances("vehicle_test_PS", {}, 
-                        "/home/super/Desktop/yh/test_PS10.json", 
-                        "/home/super/Desktop/yh/test_PS")
+                        "../../datasets/test_PS10.json", 
+                        "../../datasets/test_PS")
 
 vehicle_test_metadata = MetadataCatalog.get("vehicle_test_PS")
 dataset_dicts = DatasetCatalog.get("vehicle_test_PS")
