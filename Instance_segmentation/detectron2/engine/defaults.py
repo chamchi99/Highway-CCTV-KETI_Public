@@ -13,6 +13,7 @@ import argparse
 import logging
 import os
 import sys
+
 from collections import OrderedDict
 import torch
 from fvcore.nn.precise_bn import get_bn_modules
@@ -25,12 +26,14 @@ from detectron2.data import (
     build_detection_test_loader,
     build_detection_train_loader,
 )
+
 from detectron2.evaluation import (
     DatasetEvaluator,
     inference_on_dataset,
     print_csv_format,
     verify_results,
 )
+
 from detectron2.modeling import build_model
 from detectron2.solver import build_lr_scheduler, build_optimizer
 from detectron2.utils import comm
@@ -208,7 +211,7 @@ class DefaultPredictor:
         Returns:
             predictions (dict):
                 the output of the model for one image only.
-                See :doc:`/tutorials/models` for details about the format.
+                See :doc:`/tutorials/modelbuild_detection_test_loaders` for details about the format.
         """
         with torch.no_grad():  # https://github.com/sphinx-doc/sphinx/issues/4258
             # Apply pre-processing to image.
@@ -281,7 +284,10 @@ class DefaultTrainer(TrainerBase):
         # Assume these objects must be constructed in this order.
         model = self.build_model(cfg)
         optimizer = self.build_optimizer(cfg, model)
-        data_loader = self.build_train_loader(cfg)
+        if cfg.DATASETS.TRAIN[0][:7] != "vehicle":
+            data_loader = self.build_test_loader(cfg, cfg.DATASETS.TEST[0])
+        else:
+            data_loader = self.build_train_loader(cfg)
 
         # For training, wrap with DDP. But don't need this for inference.
         if comm.get_world_size() > 1:
