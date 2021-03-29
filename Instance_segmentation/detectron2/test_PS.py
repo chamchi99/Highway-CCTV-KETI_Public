@@ -14,11 +14,10 @@ from detectron2.utils.logger import setup_logger
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from PIL import ImageFile 
 from detectron2.utils.visualizer import ColorMode
-import datetime
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-now = datetime.datetime.now()
-print(now)
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 class CocoPredictor(DefaultPredictor):
   @classmethod
@@ -30,9 +29,20 @@ class CocoPredictor(DefaultPredictor):
 
     return COCOEvaluator(dataset_name, cfg, False, output_folder)
 
+class CocoTrainer(DefaultTrainer):
+    
+  @classmethod
+  def build_evaluator(cls, cfg, dataset_name, output_folder=None):
+
+    if output_folder is None:
+        os.makedirs("coco_eval", exist_ok=True)
+        output_folder = "coco_eval"
+
+    return COCOEvaluator(dataset_name, cfg, False, output_folder)
+
 register_coco_instances("vehicle_test_PS", {}, 
-                        "../../datasets/test_PS10.json", 
-                        "../../datasets/test_PS")
+                        "/home/super/Desktop/yh/test_PS10.json", 
+                        "/home/super/Desktop/yh/test_PS")
 
 vehicle_test_metadata = MetadataCatalog.get("vehicle_test_PS")
 dataset_dicts = DatasetCatalog.get("vehicle_test_PS")
@@ -42,12 +52,16 @@ cfg.merge_from_file("../configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.
 cfg.MODEL.ROI_HEADS.NUM_CLASSES = 3
 cfg.OUTPUT_DIR = "./output_PS"
 cfg.MODEL.BACKBONE.FREEZE_AT = 0
-cfg.MODEL.WEIGHTS = "../../weights/model_final_PS.pth"
+cfg.MODEL.WEIGHTS = "/home/super/Desktop/yh/weights/model_final_PS.pth"
 cfg.DATASETS.TEST = ("vehicle_test_PS",)
 
 os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 os.makedirs("./output_PS", exist_ok=True)
 
+trainer = CocoTrainer(cfg)
+trainer.resume_or_load(resume=True)
+
+##### prdiction model load #####
 predictor = CocoPredictor(cfg)
 
 i=0
@@ -63,9 +77,8 @@ for d in random.sample(dataset_dicts, 5):
     out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
     cv2.imwrite(cfg.OUTPUT_DIR +"/"+str(i)+"_result.png",out.get_image()[:, :, ::-1])
     i+=1
+####################################
 
-evaluator = COCOEvaluator("vehicle_test_PS", ("bbox", "segm"), False, output_dir="./output_PS/")
+evaluator = COCOEvaluator("vehicle_test_PS", {"segm"}, False, output_dir="./output_PS/")
 test_loader = build_detection_test_loader(cfg, "vehicle_test_PS")
-print(inference_on_dataset(predictor.model, test_loader, evaluator))
-now = datetime.datetime.now()
-print(now)
+print(inference_on_dataset(trainer.model, test_loader, evaluator))
