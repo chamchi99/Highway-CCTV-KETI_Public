@@ -52,7 +52,7 @@ cfg.merge_from_file("../configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.
 cfg.MODEL.ROI_HEADS.NUM_CLASSES = 3
 cfg.OUTPUT_DIR = "./output_PS"
 cfg.MODEL.BACKBONE.FREEZE_AT = 0
-cfg.MODEL.WEIGHTS = "/home/super/Desktop/yh/weights/model_final_PS.pth"
+cfg.MODEL.WEIGHTS = "../../weights/model_final_PS.pth"
 cfg.DATASETS.TEST = ("vehicle_test_PS",)
 
 os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
