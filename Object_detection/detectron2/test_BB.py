@@ -14,13 +14,24 @@ from detectron2.utils.logger import setup_logger
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from PIL import ImageFile 
 from detectron2.utils.visualizer import ColorMode
-import datetime
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-now = datetime.datetime.now()
-print(now)
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 class CocoPredictor(DefaultPredictor):
+  @classmethod
+  def build_evaluator(cls, cfg, dataset_name, output_folder=None):
+
+    if output_folder is None:
+        os.makedirs("coco_eval", exist_ok=True)
+        output_folder = "coco_eval"
+
+    return COCOEvaluator(dataset_name, cfg, False, output_folder)
+
+class CocoTrainer(DefaultTrainer):
+    
   @classmethod
   def build_evaluator(cls, cfg, dataset_name, output_folder=None):
 
@@ -40,7 +51,7 @@ dataset_dicts = DatasetCatalog.get("vehicle_test_BB")
 cfg = get_cfg()
 cfg.merge_from_file("../configs/COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml")
 cfg.MODEL.ROI_HEADS.NUM_CLASSES = 3
-cfg.OUTPUT_DIR = "./output_BB
+cfg.OUTPUT_DIR = "./output_BB"
 cfg.MODEL.BACKBONE.FREEZE_AT = 0
 cfg.MODEL.WEIGHTS = "../../weights/model_final_BB.pth"
 cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
@@ -49,10 +60,14 @@ cfg.DATASETS.TEST = ("vehicle_test_BB",)
 os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 os.makedirs("./output_BB", exist_ok=True)
 
+trainer = CocoTrainer(cfg)
+trainer.resume_or_load(resume=True)
+
+##### prdiction model load #####
 predictor = CocoPredictor(cfg)
 
 i=0
-for d in random.sample(dataset_dicts, 5):    
+for d in random.sample(dataset_dicts, 1):    
     im = cv2.imread(d["file_name"])
     file_name = d["file_name"][:-4]
     outputs = predictor(im)
@@ -64,9 +79,8 @@ for d in random.sample(dataset_dicts, 5):
     out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
     cv2.imwrite(cfg.OUTPUT_DIR +"/"+str(i)+"_result.png",out.get_image()[:, :, ::-1])
     i+=1
+####################################
 
-evaluator = COCOEvaluator("vehicle_test_BB", cfg, False, output_dir="./output_BB/")
+evaluator = COCOEvaluator("vehicle_test_BB", {"bbox"}, False, output_dir="./output_BB/")
 test_loader = build_detection_test_loader(cfg, "vehicle_test_BB")
-print(inference_on_dataset(predictor.model, test_loader, evaluator))
-now = datetime.datetime.now()
-print(now)
+print(inference_on_dataset(trainer.model, test_loader, evaluator))
