@@ -23,7 +23,7 @@ from detectron2.evaluation.fast_eval_api import COCOeval_opt
 from detectron2.structures import Boxes, BoxMode, pairwise_iou
 from detectron2.utils.file_io import PathManager
 from detectron2.utils.logger import create_small_table
-
+import matplotlib.pyplot as plt
 from .evaluator import DatasetEvaluator
 
 
@@ -33,6 +33,8 @@ class COCOEvaluator(DatasetEvaluator):
     for keypoint detection outputs using COCO's metrics.
     See http://cocodataset.org/#detection-eval and
     http://cocodataset.org/#keypoints-eval to understand its metrics.
+    The metrics range from 0 to 100 (instead of 0 to 1), where a -1 or NaN means
+    the metric cannot be computed (e.g. due to no predictions made).
 
     In addition to COCO, this evaluator is able to support any bounding box detection,
     instance segmentation, or keypoint detection dataset.
@@ -66,10 +68,9 @@ class COCOEvaluator(DatasetEvaluator):
             output_dir (str): optional, an output directory to dump all
                 results predicted on the dataset. The dump contains two files:
 
-                1. "instances_predictions.pth" a file in torch serialization
-                   format that contains all the raw original predictions.
-                2. "coco_instances_results.json" a json file in COCO's result
-                   format.
+                1. "instances_predictions.pth" a file that can be loaded with `torch.load` and
+                   contains all the results in the format they are produced by the model.
+                2. "coco_instances_results.json" a json file in COCO's result format.
             use_fast_impl (bool): use a fast but **unofficial** implementation to compute AP.
                 Although the results should be very close to the official implementation in COCO
                 API, it is still recommended to compute results with the official API for use in
@@ -229,6 +230,7 @@ class COCOEvaluator(DatasetEvaluator):
             )
         )
         for task in sorted(tasks):
+            assert task in {"bbox", "segm", "keypoints"}, f"Got unknown task: {task}!"
             coco_eval = (
                 _evaluate_predictions_on_coco(
                     self._coco_api,
@@ -326,6 +328,7 @@ class COCOEvaluator(DatasetEvaluator):
         # Compute per-category AP
         # from https://github.com/facebookresearch/Detectron/blob/a6a835f5b8208c45d0dce217ce9bbda915f44df7/detectron/datasets/json_dataset_evaluator.py#L222-L252 # noqa
         precisions = coco_eval.eval["precision"]
+
         # precision has dims (iou, recall, cls, area range, max dets)
         assert len(class_names) == precisions.shape[2]
 
@@ -349,7 +352,7 @@ class COCOEvaluator(DatasetEvaluator):
             headers=["category", "AP50"] * (N_COLS // 2),
             numalign="left",
         )
-        self._logger.info("Per-category {} AP: \n".format(iou_type) + table)
+        self._logger.info("Per-category {} AP50: \n".format(iou_type) + table)
 
         results.update({"AP-" + name: ap for name, ap in results_per_category})
         return results
@@ -552,26 +555,22 @@ def _evaluate_predictions_on_coco(
     if img_ids is not None:
         coco_eval.params.imgIds = img_ids
 
-    if iou_type == "keypoints":
-        # Use the COCO default keypoint OKS sigmas unless overrides are specified
-        if kpt_oks_sigmas:
-            assert hasattr(coco_eval.params, "kpt_oks_sigmas"), "pycocotools is too old!"
-            coco_eval.params.kpt_oks_sigmas = np.array(kpt_oks_sigmas)
-        # COCOAPI requires every detection and every gt to have keypoints, so
-        # we just take the first entry from both
-        num_keypoints_dt = len(coco_results[0]["keypoints"]) // 3
-        num_keypoints_gt = len(next(iter(coco_gt.anns.values()))["keypoints"]) // 3
-        num_keypoints_oks = len(coco_eval.params.kpt_oks_sigmas)
-        assert num_keypoints_oks == num_keypoints_dt == num_keypoints_gt, (
-            f"[COCOEvaluator] Prediction contain {num_keypoints_dt} keypoints. "
-            f"Ground truth contains {num_keypoints_gt} keypoints. "
-            f"The length of cfg.TEST.KEYPOINT_OKS_SIGMAS is {num_keypoints_oks}. "
-            "They have to agree with each other. For meaning of OKS, please refer to "
-            "http://cocodataset.org/#keypoints-eval."
-        )
-
     coco_eval.evaluate()
     coco_eval.accumulate()
     coco_eval.summarize()
+
+    all_precision = coco_eval.eval['precision']
+    pr_5_truck = all_precision[0, :, 0, 0, 2].tolist() # data for IoU@0.5
+    pr_5_bus = all_precision[0, :, 1, 0, 2].tolist() # data for IoU@0.5
+    pr_5_car = all_precision[0, :, 2, 0, 2].tolist() # data for IoU@0.5
+    x = np.arange(0, 1.01, 0.01)
+    plt.plot(x,pr_5_truck,label='trcuk, mAP:'+str(format(np.mean(pr_5_truck), ".3f")))
+    plt.plot(x,pr_5_bus,label='bus, mAP:'+str(format(np.mean(pr_5_bus), ".3f")))
+    plt.plot(x,pr_5_car,label='car, mAP:'+str(format(np.mean(pr_5_car), ".3f")))
+    plt.ylabel('precision')
+    plt.xlabel('recall')
+    plt.legend(loc='lower right')
+    plt.show()
+    print("If you want to see the final results, exit plt window.")
 
     return coco_eval

@@ -3,8 +3,9 @@ import datetime
 import logging
 import time
 from collections import OrderedDict
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 import torch
+from torch import nn
 
 from detectron2.utils.comm import get_world_size, is_main_process
 from detectron2.utils.logger import log_every_n_seconds
@@ -13,10 +14,8 @@ from detectron2.utils.logger import log_every_n_seconds
 class DatasetEvaluator:
     """
     Base class for a dataset evaluator.
-
     The function :func:`inference_on_dataset` runs the model over
     all samples in the dataset, and have a DatasetEvaluator to process the inputs/outputs.
-
     This class will accumulate information of the inputs/outputs (by :meth:`process`),
     and produce evaluation results in the end (by :meth:`evaluate`).
     """
@@ -32,13 +31,10 @@ class DatasetEvaluator:
         """
         Process the pair of inputs and outputs.
         If they contain batches, the pairs can be consumed one-by-one using `zip`:
-
         .. code-block:: python
-
             for input_, output in zip(inputs, outputs):
                 # do evaluation on single input/output pair
                 ...
-
         Args:
             inputs (list): the inputs that's used to call the model.
             outputs (list): the return value of `model(inputs)`
@@ -48,13 +44,11 @@ class DatasetEvaluator:
     def evaluate(self):
         """
         Evaluate/summarize the performance, after processing all input/output pairs.
-
         Returns:
             dict:
                 A new evaluator class can return a dict of arbitrary format
                 as long as the user can process the results.
                 In our train_net.py, we expect the following format:
-
                 * key: the name of the task (e.g., bbox)
                 * value: a dict of {metric name: score}, e.g.: {"AP50": 80}
         """
@@ -64,7 +58,6 @@ class DatasetEvaluator:
 class DatasetEvaluators(DatasetEvaluator):
     """
     Wrapper class to combine multiple :class:`DatasetEvaluator` instances.
-
     This class dispatches every evaluation call to
     all of its :class:`DatasetEvaluator`.
     """
@@ -101,20 +94,18 @@ class DatasetEvaluators(DatasetEvaluator):
 def inference_on_dataset(model, data_loader, evaluator):
     """
     Run model on the data_loader and evaluate the metrics with evaluator.
-    Also benchmark the inference speed of `model.forward` accurately.
+    Also benchmark the inference speed of `model.__call__` accurately.
     The model will be used in eval mode.
-
     Args:
-        model (nn.Module): a module which accepts an object from
-            `data_loader` and returns some outputs. It will be temporarily set to `eval` mode.
-
+        model (callable): a callable which takes an object from
+            `data_loader` and returns some outputs.
+            If it's an nn.Module, it will be temporarily set to `eval` mode.
             If you wish to evaluate a model in `training` mode instead, you can
             wrap the given model and override its behavior of `.eval()` and `.train()`.
         data_loader: an iterable object with a length.
             The elements it generates will be the inputs to the model.
         evaluator (DatasetEvaluator): the evaluator to run. Use `None` if you only want
             to benchmark, but don't want to do any evaluation.
-
     Returns:
         The return value of `evaluator.evaluate()`
     """
@@ -131,7 +122,11 @@ def inference_on_dataset(model, data_loader, evaluator):
     num_warmup = min(5, total - 1)
     start_time = time.perf_counter()
     total_compute_time = 0
-    with inference_context(model), torch.no_grad():
+    with ExitStack() as stack:
+        if isinstance(model, nn.Module):
+            stack.enter_context(inference_context(model))
+        stack.enter_context(torch.no_grad())
+
         for idx, inputs in enumerate(data_loader):
             if idx == num_warmup:
                 start_time = time.perf_counter()
@@ -186,7 +181,6 @@ def inference_context(model):
     """
     A context where the model is temporarily changed to eval mode,
     and restored to previous mode afterwards.
-
     Args:
         model: a torch Module
     """
