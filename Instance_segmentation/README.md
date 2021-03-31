@@ -19,3 +19,6 @@ https://github.com/facebookresearch/detectron2
 ## 사용방법
 
 데이터셋, 모델웨이트, 도커 등 세팅 방법은 [이 링크](https://github.com/chamchi99/Highway-CCTV-KETI/blob/main/Instance_segmentation/docker/README.md) 참조
+
+## Result (PR-Curve)
+![PR-Curve](./PR_PS.jpg)
